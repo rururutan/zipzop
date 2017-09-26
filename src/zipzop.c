@@ -21,6 +21,8 @@
  *    distribution.
  */
 
+#define __STDC_FORMAT_MACROS
+#include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -109,12 +111,12 @@ void show_result_size(FILE *infile, FILE *outfile) {
   size_t recomp = ftell(outfile);
 
   u32 diff = (int)recomp - orig;
-  printf("\noriginal -> recompressed\n\t%zd -> %zd bytes (%ld bytes)\n", orig, recomp, diff);
+  printf("\noriginal -> recompressed\n\t%zu -> %zu bytes (%ld bytes)\n", orig, recomp, diff);
 }
 
 int main(int argc, char **argv) {
-  if (argc < 4) {
-    puts("usage: zipzop NUM_ITERATIONS IN_FILE OUT_FILE");
+  if (argc < 3) {
+    puts("usage: zipzop NUM_ITERATIONS IN_FILE");
     return 0;
   }
 
@@ -129,7 +131,10 @@ int main(int argc, char **argv) {
     return 1;
   }
 
-  FILE *outfile = fopen(argv[3], "wb");
+  char fname[ L_tmpnam ];
+  tmpnam( fname );
+  printf("outname: %s\n", fname);
+  FILE *outfile = fopen(fname, "wb");
   if (outfile == NULL) {
     printf("ERROR: Cannot open output file: %s\n", argv[3]);
     return 1;
@@ -140,6 +145,14 @@ int main(int argc, char **argv) {
 
   fclose(infile);
   fclose(outfile);
+
+  if (remove(argv[2]) != 0) {
+      printf("ERROR: Remove error %s\n", argv[2]);
+      return 0;
+  }
+  if (rename(fname, argv[2]) != 0) {
+      printf("ERROR: Rename error %s -> %s\n", fname, argv[2]);
+  }
 
   return 0;
 }
